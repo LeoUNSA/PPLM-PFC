@@ -33,8 +33,8 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from tqdm import trange
 from transformers import GPT2Tokenizer
-from transformers.file_utils import cached_path
-from transformers.modeling_gpt2 import GPT2LMHeadModel
+from transformers.file_utils import default_cache_path
+from transformers.models.gpt2.modeling_gpt2 import GPT2LMHeadModel
 
 from pplm_classification_head import ClassificationHead
 
@@ -327,7 +327,7 @@ def get_classifier(
         embed_size=params['embed_size']
     ).to(device)
     if "url" in params:
-        resolved_archive_file = cached_path(params["url"])
+        resolved_archive_file = default_cache_path(params["url"])
     elif "path" in params:
         resolved_archive_file = params["path"]
     else:
@@ -368,7 +368,7 @@ def get_bag_of_words_indices(bag_of_words_ids_or_paths: List[str], tokenizer) ->
     bow_indices = []
     for id_or_path in bag_of_words_ids_or_paths:
         if id_or_path in BAG_OF_WORDS_ARCHIVE_MAP:
-            filepath = cached_path(BAG_OF_WORDS_ARCHIVE_MAP[id_or_path])
+            filepath = default_cache_path(BAG_OF_WORDS_ARCHIVE_MAP[id_or_path])
         else:
             filepath = id_or_path
         with open(filepath, "r") as f:
