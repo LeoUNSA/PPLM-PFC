@@ -380,22 +380,48 @@ def get_classifier(
                               add_special_tokens=False)
              for word in words])
     return bow_indices
-def get_bag_of_words_indices(bag_of_words_ids_or_paths: List[str], tokenizer) -> List[List[List[int]]]:
+def get_bag_of_words_indices(
+    bag_of_words_ids_or_paths: List[str], 
+    tokenizer
+) -> List[List[List[int]]]:
+    """
+    Generate bag of words indices for given words using a tokenizer.
+    
+    Args:
+        bag_of_words_ids_or_paths: List of predefined bag of words IDs or file paths
+        tokenizer: Tokenizer to use for encoding words
+    
+    Returns:
+        List of tokenized word indices for each bag of words
+    """
     bow_indices = []
+    
     for id_or_path in bag_of_words_ids_or_paths:
+        # Check if the ID is in a predefined mapping
         if id_or_path in BAG_OF_WORDS_ARCHIVE_MAP:
-            # Download the file from Hugging Face Hub
-            filepath = hf_hub_download(repo_id="your-repo-name",  # Replace with actual repo
-                                       filename=BAG_OF_WORDS_ARCHIVE_MAP[id_or_path])
+            # Use hf_hub_download instead of cached_path
+            filepath = hf_hub_download(
+                repo_id=BAG_OF_WORDS_ARCHIVE_MAP[id_or_path], 
+                filename=id_or_path
+            )
         else:
+            # If it's a direct file path
             filepath = id_or_path
+        
+        # Read words from the file
         with open(filepath, "r") as f:
             words = f.read().strip().split("\n")
-        bow_indices.append(
-            [tokenizer.encode(word.strip(),
-                              add_prefix_space=True,
-                              add_special_tokens=False)
-             for word in words])
+        
+        # Tokenize words, adding prefix space and excluding special tokens
+        bow_indices.append([
+            tokenizer.encode(
+                word.strip(), 
+                add_prefix_space=True, 
+                add_special_tokens=False
+            ) 
+            for word in words
+        ])
+    
     return bow_indices
 
 def build_bows_one_hot_vectors(bow_indices, tokenizer, device='cuda'):
