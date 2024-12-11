@@ -30,6 +30,7 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import torch
 import torch.nn.functional as F
+from huggingface_hub import hf_hub_download
 from torch.autograd import Variable
 from tqdm import trange
 from transformers import GPT2Tokenizer
@@ -363,7 +364,7 @@ def get_classifier(
     return classifier, label_id
 
 
-def get_bag_of_words_indices(bag_of_words_ids_or_paths: List[str], tokenizer) -> \
+#def get_bag_of_words_indices(bag_of_words_ids_or_paths: List[str], tokenizer) -> \
         List[List[List[int]]]:
     bow_indices = []
     for id_or_path in bag_of_words_ids_or_paths:
@@ -379,7 +380,23 @@ def get_bag_of_words_indices(bag_of_words_ids_or_paths: List[str], tokenizer) ->
                               add_special_tokens=False)
              for word in words])
     return bow_indices
-
+def get_bag_of_words_indices(bag_of_words_ids_or_paths: List[str], tokenizer) -> List[List[List[int]]]:
+    bow_indices = []
+    for id_or_path in bag_of_words_ids_or_paths:
+        if id_or_path in BAG_OF_WORDS_ARCHIVE_MAP:
+            # Download the file from Hugging Face Hub
+            filepath = hf_hub_download(repo_id="your-repo-name",  # Replace with actual repo
+                                       filename=BAG_OF_WORDS_ARCHIVE_MAP[id_or_path])
+        else:
+            filepath = id_or_path
+        with open(filepath, "r") as f:
+            words = f.read().strip().split("\n")
+        bow_indices.append(
+            [tokenizer.encode(word.strip(),
+                              add_prefix_space=True,
+                              add_special_tokens=False)
+             for word in words])
+    return bow_indices
 
 def build_bows_one_hot_vectors(bow_indices, tokenizer, device='cuda'):
     if bow_indices is None:
